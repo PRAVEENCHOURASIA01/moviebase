@@ -1,0 +1,145 @@
+/* ─────────────────────────────────────────
+   Tailwind Base
+───────────────────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────
+   Google Font — Inter
+   Loaded via index.html <link> tag
+───────────────────────────────────────── */
+
+/* ─────────────────────────────────────────
+   Base Reset & Dark Theme Defaults
+───────────────────────────────────────── */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    /* Force dark mode on by default */
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-surface text-text-primary font-sans;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* Clean focus ring — keyboard nav only */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-surface;
+  }
+
+  /* Remove default focus on mouse click */
+  *:focus:not(:focus-visible) {
+    @apply outline-none;
+  }
+
+  /* Images never overflow */
+  img {
+    @apply max-w-full;
+    display: block;
+  }
+
+  /* Consistent anchor base */
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  /* Scrollbar — minimal dark style */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-muted;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Component Utilities
+   Reusable Tailwind compositions
+───────────────────────────────────────── */
+@layer components {
+
+  /* Loading skeleton shimmer base */
+  .skeleton {
+    @apply bg-surface-elevated rounded-xl animate-shimmer;
+    background-image: linear-gradient(90deg,
+        theme('colors.surface.elevated') 0%,
+        theme('colors.surface.hover') 50%,
+        theme('colors.surface.elevated') 100%);
+    background-size: 200% 100%;
+  }
+
+  /* Movie poster container */
+  .poster-wrap {
+    @apply relative overflow-hidden rounded-xl aspect-poster bg-surface-elevated;
+  }
+
+  /* Glass effect — used in modals/overlays */
+  .glass {
+    background: rgba(20, 20, 20, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    @apply border border-surface-border;
+  }
+
+  /* Section heading */
+  .section-title {
+    @apply text-xl font-semibold text-text-primary tracking-tight;
+  }
+
+  /* Pill / badge base */
+  .pill {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Utility Overrides
+───────────────────────────────────────── */
+@layer utilities {
+
+  /* Text clamp — single line */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  /* Text clamp — two lines */
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  /* Hide scrollbar but keep scroll */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
