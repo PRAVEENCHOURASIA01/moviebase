@@ -50,7 +50,15 @@ export const buildImageUrl = (path, size = IMAGE_SIZES.POSTER.LG) => {
  * @returns {Promise<object>}
  */
 export const tmdbFetch = async (endpoint, params = {}) => {
-  const url = new URL(`${TMDB_BASE_URL}${endpoint}`)
+  // Use window.location.origin as base for relative URLs in browser
+  const baseUrl = TMDB_BASE_URL.startsWith('/')
+    ? window.location.origin
+    : TMDB_BASE_URL
+  const path = TMDB_BASE_URL.startsWith('/') 
+    ? `${TMDB_BASE_URL}${endpoint}` 
+    : endpoint
+    
+  const url = new URL(path, baseUrl)
 
   // API key always injected here — never in service files
   url.searchParams.set('api_key', ENV.TMDB_API_KEY)
