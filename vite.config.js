@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  base: '/',
   plugins: [react()],
 
   // ─────────────────────────────────────────
@@ -44,6 +45,13 @@ export default defineConfig({
     port: 5173,
     strictPort: true,   // Fail fast if port is taken
     open: true,
+    proxy: {
+      '/api/tmdb': {
+        target: 'https://api.themoviedb.org/3',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/tmdb/, ''),
+      },
+    },
   },
 
   // ─────────────────────────────────────────

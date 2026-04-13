@@ -4,7 +4,7 @@ import { FETCH_TIMEOUT_MS } from '@/lib/constants'
 // ─────────────────────────────────────────
 // TMDB Base — hardcoded, not from .env
 // ─────────────────────────────────────────
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
+const TMDB_BASE_URL = '/api/tmdb'
 const IMAGE_BASE = 'https://image.tmdb.org/t/p'
 
 // ─────────────────────────────────────────
