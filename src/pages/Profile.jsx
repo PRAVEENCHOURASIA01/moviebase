@@ -48,7 +48,7 @@ const Profile = () => {
     totalWatched: counts[CATEGORIES.WATCHED],
     totalWatchlist: counts[CATEGORIES.WATCHLIST],
     totalFavorites: counts[CATEGORIES.FAVORITES],
-    totalRated: movies.filter((m) => m.ratingLabel !== null).length,
+    totalRated: movies.filter((m) => (m.rating_label ?? m.ratingLabel) !== null).length,
   }
 
   const movieActions = {

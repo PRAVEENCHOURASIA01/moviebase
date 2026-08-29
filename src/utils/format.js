@@ -19,7 +19,8 @@ export const formatYear = (dateStr) => {
  * @returns {string}
  */
 export const normalizeUsername = (username) => {
-  return username.trim().toLowerCase()
+  if (!username) return ''
+  return String(username).trim().toLowerCase()
 }
 
 /**

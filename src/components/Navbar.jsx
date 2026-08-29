@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/useToast'
 import { ROUTES, toPublicProfile } from '@/lib/routes'
 import { Button } from '@/components/ui/Button'
 
@@ -10,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 // ─────────────────────────────────────────
 export const Navbar = () => {
   const { user, profile, isAuthenticated, logout, openAuthModal } = useAuth()
+  const { success, error: toastError } = useToast()
   const navigate = useNavigate()
 
   const handleProfileClick = () => {
@@ -22,7 +24,39 @@ export const Navbar = () => {
 
   const handleLogout = async () => {
     await logout()
+    success('Signed out successfully')
     navigate(ROUTES.HOME)
+  }
+
+  const handleShare = async () => {
+    if (!profile?.username) return
+    const url = `${window.location.origin}${toPublicProfile(profile.username)}`
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${profile.username} on MovieBase`, url })
+        success('Profile shared!')
+        return
+      } catch (err) {
+        if (err.name === 'AbortError') return
+      }
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        const input = document.createElement('input')
+        input.value = url
+        document.body.appendChild(input)
+        input.select()
+        document.execCommand('copy')
+        document.body.removeChild(input)
+      }
+      success('Profile link copied to clipboard!')
+    } catch {
+      toastError('Could not copy link. URL: ' + url)
+    }
   }
 
   return (
@@ -65,10 +99,7 @@ export const Navbar = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  const url = `${window.location.origin}${toPublicProfile(profile?.username)}`
-                  navigator.clipboard?.writeText(url)
-                }}
+                onClick={handleShare}
                 icon={<ShareIcon />}
               >
                 <span className="hidden sm:block">Share</span>

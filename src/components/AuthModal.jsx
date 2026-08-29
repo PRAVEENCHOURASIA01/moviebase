@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/useToast'
 import { RESERVED_USERNAMES } from '@/lib/constants'
 import { normalizeUsername } from '@/utils/format'
 
@@ -10,6 +11,7 @@ import { normalizeUsername } from '@/utils/format'
 // ─────────────────────────────────────────
 export const AuthModal = () => {
   const { authModal, closeAuthModal, login, signup, error, isLoading } = useAuth()
+  const { success } = useToast()
 
   const [tab, setTab] = useState('login')
   const [email, setEmail] = useState('')
@@ -54,17 +56,21 @@ export const AuthModal = () => {
     if (validationError) { setLocalErr(validationError); return }
 
     if (tab === 'login') {
-      await login(email, password)
+      const res = await login(email, password)
+      if (res?.success) {
+        success('Welcome back!')
+        clearForm()
+      }
     } else {
       const result = await signup(email, password, username)
-      // Handle email confirmation flow
-      if (result?.needsConfirmation) {
+      if (result?.success) {
+        success('Account created successfully!')
+        clearForm()
+      } else if (result?.needsConfirmation) {
         setSuccessMsg(result.error)
         clearForm()
-        return
       }
     }
-    if (!error && !localErr) clearForm()
   }
 
   const displayError = localErr || error
@@ -153,7 +159,7 @@ export const AuthModal = () => {
           {tab === 'login' ? 'Sign in' : 'Create account'}
         </Button>
 
-        {/* Supabase email confirmation hint */}
+        {/* Helper hint */}
         {tab === 'login' && (
           <p className="text-xs text-text-muted text-center">
             Your local watchlist will be synced after sign in.
@@ -161,8 +167,7 @@ export const AuthModal = () => {
         )}
         {tab === 'signup' && (
           <p className="text-xs text-text-muted text-center">
-            Make sure to disable email confirmation in Supabase for instant access,
-            or check your inbox after signup.
+            Track what you watch, rate movies, and share your profile.
           </p>
         )}
       </form>

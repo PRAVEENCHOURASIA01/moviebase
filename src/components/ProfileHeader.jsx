@@ -1,5 +1,6 @@
 import { toPublicProfile } from '@/lib/routes'
 import { Button } from '@/components/ui/Button'
+import { useToast } from '@/hooks/useToast'
 
 // ─────────────────────────────────────────
 // ProfileHeader
@@ -13,16 +14,39 @@ import { Button } from '@/components/ui/Button'
  * @param {boolean} isOwn     - true on /profile (own page)
  */
 export const ProfileHeader = ({ profile, stats = {}, isOwn = false }) => {
+  const { success, error: toastError } = useToast()
   if (!profile) return null
 
   const initials = profile.username?.slice(0, 2).toUpperCase() ?? '??'
 
-  const handleShare = () => {
+  const handleShare = async () => {
+    if (!profile.username) return
     const url = `${window.location.origin}${toPublicProfile(profile.username)}`
+    
     if (navigator.share) {
-      navigator.share({ title: `${profile.username} on MovieBase`, url })
-    } else {
-      navigator.clipboard?.writeText(url)
+      try {
+        await navigator.share({ title: `${profile.username} on MovieBase`, url })
+        success('Profile shared!')
+        return
+      } catch (err) {
+        if (err.name === 'AbortError') return
+      }
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        const input = document.createElement('input')
+        input.value = url
+        document.body.appendChild(input)
+        input.select()
+        document.execCommand('copy')
+        document.body.removeChild(input)
+      }
+      success('Profile link copied to clipboard!')
+    } catch {
+      toastError('Could not copy link. URL: ' + url)
     }
   }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useContext } from 'react'
 import { AuthContext } from '@/context/AuthContext'
+import { useToast } from '@/hooks/useToast'
 
 // Local storage service
 import {
@@ -31,6 +32,7 @@ import { RATINGS } from '@/lib/enums'
 // ─────────────────────────────────────────
 export const useMovies = () => {
   const { user, profile } = useContext(AuthContext)
+  const { success, error: toastError } = useToast()
 
   const isAuthenticated = Boolean(user && profile)
 
@@ -67,11 +69,13 @@ export const useMovies = () => {
   // Add Movie
   // ─────────────────────────────────────────
   const addMovie = useCallback(async (tmdbMovie, category) => {
+    const title = tmdbMovie.title ?? tmdbMovie.name ?? 'Movie'
+    const categoryName = category.charAt(0).toUpperCase() + category.slice(1)
     try {
       if (isAuthenticated) {
         const saved = await saveMovie(user.id, {
-          movieId: tmdbMovie.id ?? tmdbMovie.movieId,
-          title: tmdbMovie.title ?? tmdbMovie.name,
+          movieId: tmdbMovie.id ?? tmdbMovie.movieId ?? tmdbMovie.movie_id,
+          title,
           posterPath: tmdbMovie.posterPath ?? tmdbMovie.poster_path ?? null,
           releaseYear: tmdbMovie.releaseYear ?? null,
           mediaType: tmdbMovie.mediaType ?? tmdbMovie.media_type ?? 'movie',
@@ -86,6 +90,7 @@ export const useMovies = () => {
           }
           return [...prev, saved]
         })
+        success(`Added "${title}" to ${categoryName}`)
       } else {
         const saved = localAdd(tmdbMovie, category)
         setMovies((prev) => {
@@ -97,30 +102,38 @@ export const useMovies = () => {
           }
           return [...prev, saved]
         })
+        success(`Added "${title}" to ${categoryName}`)
       }
     } catch (err) {
-      setError(err.message ?? 'Failed to add movie')
+      const errMsg = err.message ?? 'Failed to add movie'
+      setError(errMsg)
+      toastError(errMsg)
     }
-  }, [isAuthenticated, user])
+  }, [isAuthenticated, user, success, toastError])
 
   // ─────────────────────────────────────────
   // Remove Movie
   // ─────────────────────────────────────────
   const removeMovie = useCallback(async (movieId) => {
     try {
+      const numericId = Number(movieId)
       if (isAuthenticated) {
-        const doc = movies.find((m) => m.movie_id === movieId)
+        const doc = movies.find((m) => (m.movie_id === numericId || m.movieId === numericId || m.movie_id === movieId || m.movieId === movieId))
         if (doc?.id) await deleteMovie(doc.id)
       } else {
-        localRemove(movieId)
+        localRemove(numericId)
       }
-      setMovies((prev) => prev.filter((m) =>
-        isAuthenticated ? m.movie_id !== movieId : m.movieId !== movieId
-      ))
+      setMovies((prev) => prev.filter((m) => {
+        const mId = m.movie_id ?? m.movieId
+        return mId !== numericId && mId !== movieId
+      }))
+      success('Removed from collection')
     } catch (err) {
-      setError(err.message ?? 'Failed to remove movie')
+      const errMsg = err.message ?? 'Failed to remove movie'
+      setError(errMsg)
+      toastError(errMsg)
     }
-  }, [isAuthenticated, movies])
+  }, [isAuthenticated, movies, success, toastError])
 
   // ─────────────────────────────────────────
   // Update Rating
@@ -130,35 +143,44 @@ export const useMovies = () => {
     if (!rating) return
 
     try {
+      const numericId = Number(movieId)
       if (isAuthenticated) {
-        const doc = movies.find((m) => m.movie_id === movieId)
+        const doc = movies.find((m) => (m.movie_id === numericId || m.movieId === numericId || m.movie_id === movieId || m.movieId === movieId))
         if (!doc?.id) return
         const updated = await updateMovie(doc.id, doc.category, rating)
         setMovies((prev) =>
-          prev.map((m) => (m.movie_id === movieId ? { ...m, ...updated } : m))
+          prev.map((m) => ((m.movie_id === numericId || m.movie_id === movieId) ? { ...m, ...updated } : m))
         )
+        success(`Rated as ${rating.label}`)
       } else {
-        const updated = localUpdateRating(movieId, rating)
+        const updated = localUpdateRating(numericId, rating)
         if (updated) {
           setMovies((prev) =>
-            prev.map((m) => (m.movieId === movieId ? updated : m))
+            prev.map((m) => ((m.movieId === numericId || m.movieId === movieId) ? updated : m))
           )
+          success(`Rated as ${rating.label}`)
         }
       }
     } catch (err) {
-      setError(err.message ?? 'Failed to update rating')
+      const errMsg = err.message ?? 'Failed to update rating'
+      setError(errMsg)
+      toastError(errMsg)
     }
-  }, [isAuthenticated, movies])
+  }, [isAuthenticated, movies, success, toastError])
 
   // ─────────────────────────────────────────
   // Derived helpers
   // Supabase uses snake_case (movie_id), local uses camelCase (movieId)
   // ─────────────────────────────────────────
   const getMovieRecord = useCallback(
-    (movieId) => movies.find((m) =>
-      isAuthenticated ? m.movie_id === movieId : m.movieId === movieId
-    ),
-    [movies, isAuthenticated]
+    (movieId) => {
+      const numericId = Number(movieId)
+      return movies.find((m) => {
+        const mId = m.movie_id ?? m.movieId
+        return mId === numericId || mId === movieId
+      })
+    },
+    [movies]
   )
 
   const isInList = useCallback(
