@@ -118,12 +118,19 @@ export const AuthModal = () => {
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4"
+        method="post"
+        action="#"
+        noValidate
+      >
 
         {tab === 'signup' && (
           <Field
             label="Username"
             type="text"
+            name="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="yourname"
@@ -135,15 +142,17 @@ export const AuthModal = () => {
         <Field
           label="Email"
           type="email"
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          autoComplete="email"
+          autoComplete="username email"
         />
 
         <Field
           label="Password"
           type="password"
+          name="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Min. 8 characters"

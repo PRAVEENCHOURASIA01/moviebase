@@ -75,10 +75,12 @@ export const AuthProvider = ({ children }) => {
     const userProfile = await ensureProfile(authUser)
     setProfile(userProfile)
 
+    // Run migration in background without blocking UI or session setup
     if (authUser.id && !migratedUserIds.current.has(authUser.id)) {
       migratedUserIds.current.add(authUser.id)
-      await migrateLocal(authUser.id).catch(() => { })
+      migrateLocal(authUser.id).catch(() => {})
     }
+    return userProfile
   }, [ensureProfile])
 
   // ── Auth Listener & Session Restore ──────
@@ -128,8 +130,8 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     setError(null)
     try {
-      await supabaseLogin(email, password)
-      const currentUser = await getCurrentUser()
+      const session = await supabaseLogin(email, password)
+      const currentUser = session?.user || await getCurrentUser()
 
       if (!currentUser) {
         const msg = 'Please confirm your email before signing in. Check your inbox.'
