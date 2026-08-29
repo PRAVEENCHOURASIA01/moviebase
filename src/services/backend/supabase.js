@@ -7,8 +7,12 @@ import { getSessionId } from '@/services/storage/localStorage'
 // Internal Error Handler
 // ─────────────────────────────────────────
 const handleError = (error, context) => {
+  let message = error?.message ?? `Supabase error in ${context}`
+  if (message.includes('Failed to fetch') || message.includes('fetch failed')) {
+    message = 'Unable to connect to Supabase. Please check your internet connection and verify your Supabase environment variables.'
+  }
   throw {
-    message: error?.message ?? `Supabase error in ${context}`,
+    message,
     code: error?.code ?? 0,
     context,
   }
@@ -31,11 +35,13 @@ const retry = async (fn, retries = 1) => {
 // ─────────────────────────────────────────
 
 /**
- * Sign up with email + password.
+ * Sign up with email + password + optional username metadata.
  * Returns { user, session } — session is null if email confirmation is ON.
  */
-export const signup = async (email, password) => {
-  const { data, error } = await supabase.auth.signUp({ email, password })
+export const signup = async (email, password, username = '') => {
+  const normalized = username ? normalizeUsername(username) : undefined
+  const options = normalized ? { data: { username: normalized } } : undefined
+  const { data, error } = await supabase.auth.signUp({ email, password, options })
   if (error) handleError(error, 'signup')
   return data   // { user, session }
 }
@@ -66,6 +72,13 @@ export const getCurrentUser = async () => {
   return data?.user ?? null
 }
 
+/**
+ * Subscribe to Supabase auth state changes.
+ */
+export const onAuthStateChange = (callback) => {
+  return supabase.auth.onAuthStateChange(callback)
+}
+
 // ─────────────────────────────────────────
 // USER PROFILE
 // ─────────────────────────────────────────
@@ -85,6 +98,24 @@ export const createUserProfile = async ({ userId, username, email, bio = null })
     .single()
 
   if (error) handleError(error, 'createUserProfile')
+  return data
+}
+
+export const upsertUserProfile = async ({ userId, username, email, bio = null }) => {
+  const { data, error } = await supabase
+    .from('users')
+    .upsert({
+      user_id: userId,
+      username: normalizeUsername(username),
+      email,
+      bio,
+      avatar_url: null,
+      is_public: true,
+    }, { onConflict: 'user_id' })
+    .select()
+    .single()
+
+  if (error) handleError(error, 'upsertUserProfile')
   return data
 }
 
