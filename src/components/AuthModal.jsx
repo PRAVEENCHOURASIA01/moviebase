@@ -19,6 +19,7 @@ export const AuthModal = () => {
   const [username, setUsername] = useState('')
   const [localErr, setLocalErr] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const clearForm = () => {
     setEmail('')
@@ -26,12 +27,14 @@ export const AuthModal = () => {
     setUsername('')
     setLocalErr('')
     setSuccessMsg('')
+    setIsSubmitting(false)
   }
 
   const switchTab = (t) => {
     setTab(t)
     setLocalErr('')
     setSuccessMsg('')
+    setIsSubmitting(false)
   }
 
   const validate = () => {
@@ -55,21 +58,26 @@ export const AuthModal = () => {
     const validationError = validate()
     if (validationError) { setLocalErr(validationError); return }
 
-    if (tab === 'login') {
-      const res = await login(email, password)
-      if (res?.success) {
-        success('Welcome back!')
-        clearForm()
+    setIsSubmitting(true)
+    try {
+      if (tab === 'login') {
+        const res = await login(email, password)
+        if (res?.success) {
+          success('Welcome back!')
+          clearForm()
+        }
+      } else {
+        const result = await signup(email, password, username)
+        if (result?.success) {
+          success('Account created successfully!')
+          clearForm()
+        } else if (result?.needsConfirmation) {
+          setSuccessMsg(result.error)
+          clearForm()
+        }
       }
-    } else {
-      const result = await signup(email, password, username)
-      if (result?.success) {
-        success('Account created successfully!')
-        clearForm()
-      } else if (result?.needsConfirmation) {
-        setSuccessMsg(result.error)
-        clearForm()
-      }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -154,7 +162,7 @@ export const AuthModal = () => {
           variant="primary"
           size="md"
           fullWidth
-          isLoading={isLoading}
+          isLoading={isSubmitting}
         >
           {tab === 'login' ? 'Sign in' : 'Create account'}
         </Button>
