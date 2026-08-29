@@ -24,42 +24,46 @@ export const AuthProvider = ({ children }) => {
   const migratedUserIds = useRef(new Set())
 
   // ── Ensure Profile Helper ────────────────
-  // Retrieves or automatically creates a profile row if missing
+  // Retrieves or automatically creates a profile row with fast-path fallback
   const ensureProfile = useCallback(async (authUser) => {
     if (!authUser) return null
-    try {
-      let userProfile = await getUserById(authUser.id)
-      if (!userProfile) {
-        // Derive username from metadata or email
-        const metaUsername = authUser.user_metadata?.username
-        const fallbackUsername = normalizeUsername(
-          metaUsername || authUser.email?.split('@')[0] || `user_${authUser.id.slice(0, 6)}`
-        )
+    const metaUsername = authUser.user_metadata?.username
+    const fallbackUsername = normalizeUsername(
+      metaUsername || authUser.email?.split('@')[0] || `user_${authUser.id.slice(0, 6)}`
+    )
 
-        try {
-          userProfile = await upsertUserProfile({
-            userId: authUser.id,
-            username: fallbackUsername,
-            email: authUser.email,
-          })
-        } catch {
-          // If insert fails (e.g. username taken or RLS), create local fallback representation
-          userProfile = {
-            user_id: authUser.id,
-            username: fallbackUsername,
-            email: authUser.email,
-            is_public: true,
+    const defaultProfile = {
+      user_id: authUser.id,
+      username: fallbackUsername,
+      email: authUser.email,
+      is_public: true,
+    }
+
+    try {
+      // 2.5 second timeout wrapper to prevent any hanging queries
+      const profilePromise = (async () => {
+        let userProfile = await getUserById(authUser.id)
+        if (!userProfile) {
+          try {
+            userProfile = await upsertUserProfile({
+              userId: authUser.id,
+              username: fallbackUsername,
+              email: authUser.email,
+            })
+          } catch {
+            userProfile = defaultProfile
           }
         }
-      }
-      return userProfile
+        return userProfile
+      })()
+
+      const timeoutPromise = new Promise((resolve) =>
+        setTimeout(() => resolve(defaultProfile), 2500)
+      )
+
+      return await Promise.race([profilePromise, timeoutPromise])
     } catch {
-      return {
-        user_id: authUser.id,
-        username: authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'User',
-        email: authUser.email,
-        is_public: true,
-      }
+      return defaultProfile
     }
   }, [])
 
