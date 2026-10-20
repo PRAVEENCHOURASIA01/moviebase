@@ -59,15 +59,22 @@ export const Navbar = () => {
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
             <>
-              {/* Avatar + username */}
+              {/* Avatar + username + email */}
               <button
                 onClick={() => navigate(ROUTES.PROFILE)}
                 className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-surface-hover transition-colors"
               >
-                <Avatar username={profile?.username} />
-                <span className="hidden sm:block text-sm font-medium text-text-primary">
-                  {profile?.username}
-                </span>
+                <Avatar username={profile?.username} photoURL={profile?.avatarUrl} />
+                <div className="hidden sm:flex flex-col items-start leading-tight">
+                  <span className="text-sm font-medium text-text-primary">
+                    {profile?.username}
+                  </span>
+                  {profile?.email && (
+                    <span className="text-[10px] text-text-muted font-mono truncate max-w-[140px]">
+                      {profile.email}
+                    </span>
+                  )}
+                </div>
               </button>
 
               {/* Share profile */}
@@ -103,7 +110,16 @@ export const Navbar = () => {
 
 // ── Sub-components ────────────────────────
 
-const Avatar = ({ username }) => {
+const Avatar = ({ username, photoURL }) => {
+  if (photoURL) {
+    return (
+      <img
+        src={photoURL}
+        alt={username}
+        className="w-8 h-8 rounded-full object-cover border border-brand/40"
+      />
+    )
+  }
   const initials = username ? username.slice(0, 2).toUpperCase() : '?'
   return (
     <div className="w-8 h-8 rounded-full bg-brand/20 border border-brand/40 flex items-center justify-center">

@@ -57,6 +57,17 @@ export const AuthProvider = ({ children }) => {
     return { success: true }
   }, [])
 
+  // ── Update Username ────────────────────────
+  const updateUsername = useCallback(async (newName) => {
+    const trimmed = String(newName).trim()
+    if (!trimmed) return { success: false, error: 'Name cannot be empty' }
+    const updatedProfile = { ...profile, username: trimmed, updatedAt: new Date().toISOString() }
+    await dbSaveSetting('profile', updatedProfile)
+    setProfile(updatedProfile)
+    setUser((prev) => prev ? { ...prev, displayName: trimmed } : prev)
+    return { success: true }
+  }, [profile])
+
   // ── Logout ─────────────────────────────────
   const logout = useCallback(async (currentUserEmail) => {
     // Clear local storage first
@@ -88,6 +99,7 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     isAuthenticated: Boolean(user),
     loginWithGoogle,
+    updateUsername,
     logout,
     authModal,
     openAuthModal,
