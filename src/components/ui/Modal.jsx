@@ -1,26 +1,17 @@
-import { useEffect, useCallback } from 'react'
+﻿import { useEffect, useCallback } from 'react'
 
-// ─────────────────────────────────────────
 // Modal — accessible, animated overlay
 // Closes on backdrop click + Escape key
-// ─────────────────────────────────────────
-
-/**
- * @param {boolean}          isOpen
- * @param {function}         onClose
- * @param {string}           title
- * @param {'sm'|'md'|'lg'}   size
- * @param {React.ReactNode}  children
- */
+// Sizes: sm | md | lg | xl | 2xl
 export const Modal = ({
   isOpen,
   onClose,
   title,
   size = 'md',
   className = '',
+  noPadding = false,
   children,
 }) => {
-  // Close on Escape
   const handleKey = useCallback(
     (e) => { if (e.key === 'Escape') onClose() },
     [onClose]
@@ -47,9 +38,10 @@ export const Modal = ({
   }
 
   return (
-    // Backdrop
+    // Full-screen scrollable backdrop — this scrolls if content is tall
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto"
+      style={{ padding: '24px 16px' }}
       aria-modal="true"
       role="dialog"
     >
@@ -60,20 +52,21 @@ export const Modal = ({
         aria-hidden="true"
       />
 
-      {/* Panel */}
+      {/* Panel — auto height, never taller than viewport, inner content scrolls */}
       <div
         className={[
           'relative w-full z-10 my-auto',
           'glass rounded-2xl shadow-2xl',
-          'max-h-[90vh] overflow-y-auto',
+          'flex flex-col',
+          'max-h-[calc(100vh-48px)]',
           'animate-scale-in',
           widths[size] ?? widths.md,
           className,
         ].join(' ')}
       >
-        {/* Header */}
+        {/* Optional header */}
         {title && (
-          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-surface-border">
+          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-surface-border shrink-0">
             <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
             <button
               onClick={onClose}
@@ -85,8 +78,10 @@ export const Modal = ({
           </div>
         )}
 
-        {/* Body */}
-        <div className="px-6 py-5">{children}</div>
+        {/* Scrollable body */}
+        <div className={['flex-1 overflow-y-auto', noPadding ? '' : 'px-6 py-5'].join(' ')}>
+          {children}
+        </div>
       </div>
     </div>
   )

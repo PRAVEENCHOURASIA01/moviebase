@@ -63,19 +63,19 @@ export const MovieDetailModal = ({
   const isInList = Boolean(userRecord)
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
-      <div className="relative -m-6 rounded-2xl overflow-hidden bg-surface-elevated text-text-primary">
-        {/* Sticky close button so it is always accessible while scrolling */}
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" noPadding>
+      <div className="relative overflow-hidden bg-surface-elevated text-text-primary rounded-2xl">
+        {/* Floating close button — always visible in top-right corner */}
         <button
           onClick={onClose}
-          className="sticky top-4 float-right mr-4 mt-4 z-40 w-9 h-9 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition-all shadow-lg backdrop-blur-md border border-white/10"
+          className="absolute top-3 right-3 z-40 w-9 h-9 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition-all shadow-lg backdrop-blur-md border border-white/10"
           aria-label="Close modal"
         >
           ✕
         </button>
 
-        {/* Backdrop Header */}
-        <div className="relative -mt-13 h-60 sm:h-72 md:h-80 w-full overflow-hidden bg-surface">
+        {/* Backdrop Header — viewport-safe height */}
+        <div className="relative h-48 sm:h-56 md:h-64 w-full overflow-hidden bg-surface">
           {backdropUrl ? (
             <img
               src={backdropUrl}
