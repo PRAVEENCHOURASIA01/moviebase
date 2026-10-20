@@ -58,10 +58,28 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   // ── Logout ─────────────────────────────────
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (currentUserEmail) => {
+    // Clear local storage first
     await dbSaveSetting('profile', null)
     setUser(null)
     setProfile(null)
+
+    // Tell GIS to forget the cached account selection.
+    // This forces the full account picker on the next sign-in attempt.
+    try {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.disableAutoSelect()
+        // If we have the user's email, also revoke the token so Google
+        // completely forgets the session on this origin.
+        if (currentUserEmail) {
+          window.google.accounts.id.revoke(currentUserEmail, () => {
+            console.log('[Auth] Google token revoked for', currentUserEmail)
+          })
+        }
+      }
+    } catch (err) {
+      console.warn('[Auth] GIS revoke error (non-critical):', err)
+    }
   }, [])
 
   const value = {

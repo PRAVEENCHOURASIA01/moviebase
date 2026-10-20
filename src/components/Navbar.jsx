@@ -23,7 +23,8 @@ export const Navbar = () => {
   }
 
   const handleLogout = async () => {
-    await logout()
+    // Pass the email so GIS can revoke & forget this specific account
+    await logout(profile?.email || user?.email || '')
     success('Signed out successfully')
     navigate(ROUTES.HOME)
   }
