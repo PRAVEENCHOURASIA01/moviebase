@@ -16,11 +16,7 @@ const upstashCommand = async (command, ...args) => {
   const token = ENV.UPSTASH_REDIS_REST_TOKEN
 
   if (!url || !token) {
-    // If not configured yet, return null gracefully with warning
-    if (ENV.IS_DEV) {
-      console.warn('[SnapshotService] Upstash Redis credentials not configured. Profile sharing will work locally or once configured.')
-    }
-    return null
+    throw new Error('Upstash Redis credentials not configured. Please add VITE_UPSTASH_REDIS_REST_URL and VITE_UPSTASH_REDIS_REST_TOKEN in Vercel project settings.')
   }
 
   const endpoint = `${url.replace(/\/$/, '')}`
@@ -53,7 +49,6 @@ export const publishSnapshot = async (shareToken, snapshotData) => {
     publishedAt: new Date().toISOString(),
   })
 
-  // Store in Upstash Redis permanently (no TTL or 1 year persistence)
   const result = await upstashCommand('SET', key, payload)
   return result
 }

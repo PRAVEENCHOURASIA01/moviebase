@@ -63,10 +63,19 @@ export const MovieDetailModal = ({
   const isInList = Boolean(userRecord)
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <div className="relative -m-6 rounded-2xl overflow-hidden bg-surface-elevated text-text-primary">
+        {/* Sticky close button so it is always accessible while scrolling */}
+        <button
+          onClick={onClose}
+          className="sticky top-4 float-right mr-4 mt-4 z-40 w-9 h-9 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition-all shadow-lg backdrop-blur-md border border-white/10"
+          aria-label="Close modal"
+        >
+          ✕
+        </button>
+
         {/* Backdrop Header */}
-        <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-surface">
+        <div className="relative -mt-13 h-60 sm:h-72 md:h-80 w-full overflow-hidden bg-surface">
           {backdropUrl ? (
             <img
               src={backdropUrl}
@@ -77,14 +86,6 @@ export const MovieDetailModal = ({
             <div className="w-full h-full bg-gradient-to-br from-brand/20 via-surface to-surface" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-surface-elevated via-surface-elevated/60 to-transparent" />
-
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-colors backdrop-blur-sm"
-          >
-            ✕
-          </button>
 
           {/* Play Trailer overlay button */}
           {details?.trailerKey && !showTrailer && (

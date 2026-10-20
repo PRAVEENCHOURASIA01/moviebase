@@ -38,18 +38,24 @@ export const Modal = ({
 
   if (!isOpen) return null
 
-  const widths = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg' }
+  const widths = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-2xl',
+    '2xl': 'max-w-4xl',
+  }
 
   return (
     // Backdrop
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
       aria-modal="true"
       role="dialog"
     >
       {/* Dim layer */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -57,8 +63,9 @@ export const Modal = ({
       {/* Panel */}
       <div
         className={[
-          'relative w-full z-10',
+          'relative w-full z-10 my-auto',
           'glass rounded-2xl shadow-2xl',
+          'max-h-[90vh] overflow-y-auto',
           'animate-scale-in',
           widths[size] ?? widths.md,
           className,
