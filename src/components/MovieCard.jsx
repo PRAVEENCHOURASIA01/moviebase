@@ -23,6 +23,7 @@ const CATEGORY_ACTIONS = [
  * @param {function}    onAdd        - (movie, category) => void
  * @param {function}    onRemove     - (movieId) => void
  * @param {function}    onRate       - (movieId, ratingKey) => void
+ * @param {function}    onSelect     - (movie) => void (opens detail modal)
  * @param {boolean}     showRating   - show rating selector (profile view)
  */
 export const MovieCard = ({
@@ -31,21 +32,27 @@ export const MovieCard = ({
   onAdd,
   onRemove,
   onRate,
+  onSelect,
   showRating = false,
 }) => {
   const [imgError, setImgError] = useState(false)
 
-  // ── Normalize fields (TMDB vs Supabase) ──
-  const movieId = movie.id ?? movie.movie_id ?? movie.movieId
+  // ── Normalize fields (Unified schema) ──
+  const movieId = movie.movieId ?? movie.id ?? movie.movie_id
   const title = movie.title ?? movie.name ?? 'Untitled'
   const posterPath = movie.posterPath ?? movie.poster_path ?? null
-  const releaseYear = movie.releaseYear ?? movie.release_date?.slice(0, 4) ?? '—'
+  const releaseYear =
+    movie.releaseYear ??
+    movie.release_year ??
+    (movie.release_date || movie.first_air_date)?.slice(0, 4) ??
+    '—'
   const mediaType = movie.mediaType ?? movie.media_type ?? 'movie'
   const tmdbRating = movie.rating ?? null
 
   // ── Normalize userRecord fields ───────────
   const recordCategory = userRecord?.category ?? null
   const recordRatingLabel = userRecord?.ratingLabel ?? userRecord?.rating_label ?? null
+
 
   const posterUrl = !imgError && posterPath
     ? buildImageUrl(posterPath, IMAGE_SIZES.POSTER.MD)
@@ -57,7 +64,10 @@ export const MovieCard = ({
     <div className="group relative flex flex-col gap-2 animate-fade-in">
 
       {/* ── Poster ─────────────────────────── */}
-      <div className="poster-wrap overflow-hidden">
+      <div
+        className="poster-wrap overflow-hidden cursor-pointer"
+        onClick={() => onSelect?.(movie)}
+      >
         {posterUrl ? (
           <img
             src={posterUrl}
@@ -74,7 +84,10 @@ export const MovieCard = ({
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         {/* Interaction layer */}
-        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+        <div
+          className="absolute inset-x-0 bottom-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
           {!isInList ? (
             <div className="flex flex-col gap-1.5">
               {CATEGORY_ACTIONS.map(({ key, label, icon }) => (
@@ -130,7 +143,11 @@ export const MovieCard = ({
 
       {/* ── Meta ───────────────────────────── */}
       <div className="flex flex-col gap-0.5 px-0.5">
-        <p className="text-sm font-medium text-text-primary line-clamp-1" title={title}>
+        <p
+          className="text-sm font-medium text-text-primary line-clamp-1 cursor-pointer hover:text-brand transition-colors"
+          title={title}
+          onClick={() => onSelect?.(movie)}
+        >
           {title}
         </p>
         <p className="text-xs text-text-muted">

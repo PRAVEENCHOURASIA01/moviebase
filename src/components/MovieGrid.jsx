@@ -1,10 +1,12 @@
+import { useState } from 'react'
 import { MovieCard } from '@/components/MovieCard'
 import { LoadingSkeleton } from '@/components/LoadingSkeleton'
+import { MovieDetailModal } from '@/components/MovieDetailModal'
 
 // ─────────────────────────────────────────
 // MovieGrid
-// Responsive grid of MovieCards
-// Handles: loading, empty, results
+// Responsive grid of MovieCards with detail modal
+// Handles: loading, empty, results, movie details
 // ─────────────────────────────────────────
 
 /**
@@ -23,6 +25,8 @@ export const MovieGrid = ({
   showRating = false,
   skeletonCount = 12,
 }) => {
+  const [selectedMovie, setSelectedMovie] = useState(null)
+
   if (isLoading) {
     return <LoadingSkeleton count={skeletonCount} />
   }
@@ -37,26 +41,43 @@ export const MovieGrid = ({
   }
 
   const { onAdd, onRemove, onRate, getMovieRecord } = movieActions
+  const selectedUserRecord = selectedMovie && getMovieRecord
+    ? getMovieRecord(selectedMovie.id ?? selectedMovie.movie_id ?? selectedMovie.movieId)
+    : null
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-      {movies.map((movie) => {
-        const id = movie.id ?? movie.movie_id ?? movie.movieId
-        const userRecord = getMovieRecord ? getMovieRecord(id) : null
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+        {movies.map((movie) => {
+          const id = movie.id ?? movie.movie_id ?? movie.movieId
+          const userRecord = getMovieRecord ? getMovieRecord(id) : null
 
-        return (
-          <MovieCard
-            key={id}
-            movie={movie}
-            userRecord={userRecord}
-            onAdd={onAdd}
-            onRemove={onRemove}
-            onRate={onRate}
-            showRating={showRating}
-          />
-        )
-      })}
-    </div>
+          return (
+            <MovieCard
+              key={id}
+              movie={movie}
+              userRecord={userRecord}
+              onAdd={onAdd}
+              onRemove={onRemove}
+              onRate={onRate}
+              onSelect={setSelectedMovie}
+              showRating={showRating}
+            />
+          )
+        })}
+      </div>
+
+      {/* Movie Details & YouTube Trailer Modal */}
+      <MovieDetailModal
+        movie={selectedMovie}
+        isOpen={Boolean(selectedMovie)}
+        onClose={() => setSelectedMovie(null)}
+        userRecord={selectedUserRecord}
+        onAdd={onAdd}
+        onRemove={onRemove}
+        onRate={onRate}
+      />
+    </>
   )
 }
 

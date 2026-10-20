@@ -25,6 +25,7 @@ export const migrateLocalToSupabase = async (userId) => {
 
   let migrated = 0
   let failed = 0
+  const successfullyMigratedIds = []
 
   for (const movie of localMovies) {
     try {
@@ -38,6 +39,7 @@ export const migrateLocalToSupabase = async (userId) => {
         ratingLabel: movie.ratingLabel ?? null,
         ratingValue: movie.ratingValue ?? null,
       })
+      successfullyMigratedIds.push(movie.movieId)
       migrated++
     } catch (err) {
       if (import.meta.env.DEV) {
@@ -47,9 +49,14 @@ export const migrateLocalToSupabase = async (userId) => {
     }
   }
 
-  // Only clear local data if at least one succeeded
-  if (migrated > 0) {
-    clearMovies()
+  // Only remove movies that actually succeeded — never delete failed ones!
+  if (successfullyMigratedIds.length > 0) {
+    const remaining = localMovies.filter((m) => !successfullyMigratedIds.includes(m.movieId))
+    if (remaining.length === 0) {
+      clearMovies()
+    } else {
+      saveMovies(remaining)
+    }
   }
 
   if (import.meta.env.DEV) {

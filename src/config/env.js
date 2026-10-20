@@ -1,19 +1,15 @@
 // ─────────────────────────────────────────
 // Global Environment Config
 // Single source of truth for all env vars.
-// Validates at startup — fails loudly in dev
-// if any required variable is missing.
+// Provides safe fallbacks and warnings instead of crashing on load.
 // ─────────────────────────────────────────
 
-const require = (key) => {
+const getEnv = (key, fallback = '') => {
   const value = import.meta.env[key]
-  if (!value) {
-    throw new Error(
-      `[ENV] Missing required environment variable: ${key}\n` +
-      `Check your .env file and ensure it matches .env.example`
-    )
+  if (!value && import.meta.env.DEV) {
+    console.warn(`[ENV] Warning: Missing environment variable ${key}. Using fallback.`)
   }
-  return value
+  return value || fallback
 }
 
 export const ENV = {
@@ -22,9 +18,16 @@ export const ENV = {
   IS_DEV: import.meta.env.DEV,
 
   // ── TMDB ──────────────────────────────
-  TMDB_API_KEY: require('VITE_TMDB_API_KEY'),
+  TMDB_API_KEY: getEnv('VITE_TMDB_API_KEY', ''),
 
-  // ── Supabase ──────────────────────────
-  SUPABASE_URL: require('VITE_SUPABASE_URL'),
-  SUPABASE_ANON_KEY: require('VITE_SUPABASE_ANON_KEY'),
+  // ── Supabase (Optional / Legacy) ──────
+  SUPABASE_URL: getEnv('VITE_SUPABASE_URL', ''),
+  SUPABASE_ANON_KEY: getEnv('VITE_SUPABASE_ANON_KEY', ''),
+
+  // ── Google OAuth Client ID ────────────
+  GOOGLE_CLIENT_ID: getEnv('VITE_GOOGLE_CLIENT_ID', ''),
+
+  // ── Upstash Redis (Snapshot Cloud Store) ──
+  UPSTASH_REDIS_REST_URL: getEnv('VITE_UPSTASH_REDIS_REST_URL', ''),
+  UPSTASH_REDIS_REST_TOKEN: getEnv('VITE_UPSTASH_REDIS_REST_TOKEN', ''),
 }

@@ -56,7 +56,23 @@ const ToastStack = ({ toasts, dismiss }) => {
   )
 }
 
-const ICONS = { success: '?', error: '?', info: '??' }
+const ICONS = {
+  success: (
+    <svg className="w-5 h-5 text-rating-great" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  ),
+  error: (
+    <svg className="w-5 h-5 text-rating-worst" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
+  info: (
+    <svg className="w-5 h-5 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+}
 
 const STYLES = {
   success: 'bg-surface-elevated border-rating-great/40',
@@ -74,14 +90,16 @@ const ToastItem = ({ toast, onDismiss }) => (
     ].join(' ')}
     role="alert"
   >
-    <span className="text-base shrink-0">{ICONS[toast.type]}</span>
+    <span className="shrink-0">{ICONS[toast.type] ?? ICONS.info}</span>
     <span className="text-text-primary flex-1">{toast.message}</span>
     <button
       onClick={onDismiss}
-      className="shrink-0 text-text-muted hover:text-text-primary transition-colors ml-1"
+      className="shrink-0 text-text-muted hover:text-text-primary transition-colors p-1"
       aria-label="Dismiss"
     >
-      ?
+      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
     </button>
   </div>
 )

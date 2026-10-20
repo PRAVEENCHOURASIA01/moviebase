@@ -122,7 +122,7 @@ export const upsertUserProfile = async ({ userId, username, email, bio = null })
 export const getUserByUsername = async (username) => {
   const { data, error } = await supabase
     .from('users')
-    .select('*')
+    .select('user_id, username, bio, avatar_url, is_public')
     .eq('username', normalizeUsername(username))
     .eq('is_public', true)
     .single()

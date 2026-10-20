@@ -206,6 +206,15 @@ export const updateRating = (movieId, rating) => {
 }
 
 /**
+ * Save / overwrite full array of movies in local storage.
+ * @param {Array} movies
+ */
+export const saveMovies = (movies) => {
+  const { data } = readStore()
+  writeStore({ ...data, movies })
+}
+
+/**
  * Clear only movie data after successful migration.
  */
 export const clearMovies = () => {
